@@ -1,0 +1,36 @@
+#include "../include/tsQueue.h"
+//#include "gtest/gtest.h"
+
+#include <pthread.h>
+
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+#define NTHREADS 10
+TSQueue<int> q;
+vector<pthread_t> tids(NTHREADS);
+static int counter = 0;
+
+void* do_it(void* arg)
+{
+    for (int i = 0; i != 10; ++i)
+    {
+        q.push_back(++counter);
+    }
+    return NULL;
+}
+
+int main()
+{
+    for (int i = 0; i != NTHREADS; ++i)
+        pthread_create(&tids.at(i), NULL, do_it, NULL);
+        
+    for (auto tid : tids)
+        pthread_join(tid, NULL);
+    
+    while (!q.empty())
+        cout << q.pop_front() << endl;
+    return 0;
+}
