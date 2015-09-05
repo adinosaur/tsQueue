@@ -63,12 +63,19 @@ class TSQueue
 // If queue's size == N, push_back will blocking
 // If queue's size == 0, pop_front will blocking
 template <typename T>
-class NTSQueue
+class NTSQueue : public TSQueue<T>
 {
     public:
-        typedef T value_type;
+        using typename TSQueue<T>::value_type;
+        using TSQueue<T>::_d_mutex;
+        using TSQueue<T>::_deque;
+        using TSQueue<T>::size;
+        using TSQueue<T>::empty;
+        using TSQueue<T>::print;
+        
         explicit NTSQueue(int size): _deque_size(size) {}
         
+        // override TSQueue<T>::push_back
         void push_back(const T& val)
         {
             pthread_mutex_lock(&_d_mutex);
@@ -84,6 +91,7 @@ class NTSQueue
             pthread_mutex_unlock(&_d_mutex);
         }
         
+        // override TSQueue<T>::pop_front
         T pop_front()
         {
             pthread_mutex_lock(&_d_mutex);
@@ -100,27 +108,8 @@ class NTSQueue
             pthread_mutex_unlock(&_d_mutex);
             return tmp;
         }
-        
-        bool empty()
-        {
-            return _deque.empty();
-        }
-        
-        typename std::deque<value_type>::size_type size()
-        {
-            return _deque.size();
-        }
-        
-        void print(std::ostream& os)
-        {
-            for (auto x : _deque)
-                os << x << std::endl;
-        }
     protected:
         size_t _deque_size;
-        std::deque<value_type> _deque;
-        
-        pthread_mutex_t _d_mutex;
         
         // condition _d_put_cond means queue is not full.
         // when queue is full, push_back() operations will wait for 
